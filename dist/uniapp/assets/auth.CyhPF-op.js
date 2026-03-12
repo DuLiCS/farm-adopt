@@ -1,0 +1,1 @@
+import{r as e}from"./request.BhIB68dX.js";function r(r,o){return e("/auth/login",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:`username=${r}&password=${o}`})}function o(r,o,n){return e("/auth/register",{method:"POST",body:JSON.stringify({phone:r,password:o,nickname:n})})}export{r as l,o as r};
