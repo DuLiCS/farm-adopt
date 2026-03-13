@@ -26,6 +26,10 @@
             <td>{{ o.target?.code || o.target_id }}</td>
             <td>{{ planLabel(o.plan_type) }}</td>
             <td>{{ formatDate(o.expire_date) }}</td>
+            <td>{{ o.receiver_name || '-' }}</td>
+            <td>{{ o.receiver_phone || '-' }}</td>
+            <td>{{ o.receiver_address || '-' }}</td>
+            <td>{{ o.receiver_note || '-' }}</td>
             <td :style="{ color: statusColor(o.status) }">{{ statusLabel(o.status) }}</td>
           </tr>
         </tbody>
