@@ -16,7 +16,7 @@ from app.schemas.adopt_order import AdoptOrderOut
 from app.schemas.admin_order import AdminOrderCreate
 from app.routers.auth import get_admin_user
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(tags=["admin"])
 
 def get_db():
     db = SessionLocal()

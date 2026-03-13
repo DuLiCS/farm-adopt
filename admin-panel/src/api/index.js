@@ -1,4 +1,4 @@
-const BASE = ''
+const BASE = window.location.origin
 
 function getToken() {
   return localStorage.getItem('admin_token')
