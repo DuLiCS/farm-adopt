@@ -13,6 +13,10 @@
             <th>山南对象</th>
             <th>套餐</th>
             <th>到期日</th>
+            <th>收货人</th>
+            <th>手机</th>
+            <th>收货地址</th>
+            <th>备注</th>
             <th>状态</th>
           </tr>
         </thead>
