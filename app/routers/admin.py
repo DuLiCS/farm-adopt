@@ -102,6 +102,10 @@ def list_orders(
             "price": order.price,
             "status": order.status.value if hasattr(order.status, 'value') else order.status,
             "created_at": order.created_at,
+            "receiver_name": order.receiver_name,
+            "receiver_phone": order.receiver_phone,
+            "receiver_address": order.receiver_address,
+            "receiver_note": order.receiver_note,
             "user": {
                 "id": order.user.id,
                 "phone": order.user.phone,

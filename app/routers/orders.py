@@ -77,6 +77,15 @@ def create_order(
     elif plan_type == PlanType.TRIAL:
         expire_date = start_date + timedelta(days=30)
 
+    # 检查是否已认养
+    existing = db.query(AdoptOrder).filter(
+        AdoptOrder.user_id == current_user.id,
+        AdoptOrder.target_id == order_data.target_id,
+        AdoptOrder.status == OrderStatus.ACTIVE
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="您已经认养了这个对象")
+
     # 创建订单
     order = AdoptOrder(
         user_id=current_user.id,
@@ -85,9 +94,16 @@ def create_order(
         expire_date=expire_date,
         plan_type=plan_type,
         price=order_data.price,
-        status=OrderStatus.ACTIVE
+        status=OrderStatus.ACTIVE,
+        receiver_name=getattr(order_data, 'receiver_name', None),
+        receiver_phone=getattr(order_data, 'receiver_phone', None),
+        receiver_address=getattr(order_data, 'receiver_address', None),
+        receiver_note=getattr(order_data, 'receiver_note', None)
     )
     db.add(order)
+    # 更新认养对象状态为不可用
+    from app.models.adopt_target import TargetStatus
+    target.current_status = TargetStatus.UNAVAILABLE
     db.commit()
     db.refresh(order)
     return order
