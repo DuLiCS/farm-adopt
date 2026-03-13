@@ -250,3 +250,28 @@ def create_delivery(
     db.commit()
     db.refresh(delivery)
     return {"id": delivery.id, "message": "Delivery created successfully"}
+
+
+import os, uuid
+from fastapi import UploadFile, File
+
+UPLOAD_DIR = "/opt/farm-adopt/static/images"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@router.post("/upload")
+async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_admin_user)):
+    ext = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
+    filename = uuid.uuid4().hex + ext
+    filepath = os.path.join(UPLOAD_DIR, filename)
+    with open(filepath, "wb") as f:
+        f.write(await file.read())
+    return {"url": f"/static/images/{filename}"}
+
+@router.patch("/targets/{target_id}/cover")
+def update_target_cover(target_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+    target = db.query(AdoptTarget).filter(AdoptTarget.id == target_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Target not found")
+    target.cover_image = data.get("cover_image")
+    db.commit()
+    return {"ok": True}
