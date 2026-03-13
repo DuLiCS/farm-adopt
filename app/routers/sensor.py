@@ -53,3 +53,29 @@ def get_latest_sensor(device_id: str, db: Session = Depends(get_db)):
         "soil_moisture": result.soil_moisture,
         "recorded_at": result.recorded_at
     }
+
+
+@router.get("/api/sensor/history")
+def get_sensor_history(device_id: str, hours: int = 24, db: Session = Depends(get_db)):
+    result = db.execute(text("""
+        SELECT temperature, humidity, soil_moisture, recorded_at
+        FROM sensor_logs
+        WHERE device_id = :device_id
+        AND recorded_at >= NOW() - INTERVAL '1 second' * :seconds
+        AND temperature < 100 AND humidity <= 100
+        ORDER BY recorded_at ASC
+    """), {"device_id": device_id, "seconds": hours * 3600}).fetchall()
+    
+    return {
+        "device_id": device_id,
+        "hours": hours,
+        "data": [
+            {
+                "temperature": r.temperature,
+                "humidity": r.humidity,
+                "soil_moisture": r.soil_moisture,
+                "recorded_at": r.recorded_at
+            }
+            for r in result
+        ]
+    }
