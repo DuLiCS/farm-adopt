@@ -108,10 +108,32 @@ def create_order(
     db.refresh(order)
     return order
 
-@router.get("/me", response_model=List[AdoptOrderOut])
+@router.get("/me")
 def get_my_orders(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     orders = db.query(AdoptOrder).filter(AdoptOrder.user_id == current_user.id).all()
-    return orders
+    result = []
+    for order in orders:
+        target = db.query(AdoptTarget).filter(AdoptTarget.id == order.target_id).first()
+        order_dict = {
+            "id": order.id,
+            "user_id": order.user_id,
+            "target_id": order.target_id,
+            "plan_type": order.plan_type.value if order.plan_type else None,
+            "status": order.status.value if order.status else None,
+            "start_date": str(order.start_date) if order.start_date else None,
+            "expire_date": str(order.expire_date) if order.expire_date else None,
+            "price": order.price,
+            "target": {
+                "id": target.id,
+                "name": target.name,
+                "code": target.code,
+                "type": target.type.value if target.type else None,
+                "cover_image": target.cover_image,
+                "location_desc": target.location_desc
+            } if target else None
+        }
+        result.append(order_dict)
+    return result
 
 @router.get("/{order_id}/updates", response_model=List[UpdateLogOut])
 def get_order_updates(order_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

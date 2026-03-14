@@ -21,6 +21,9 @@ class UpdateLogCreate(UpdateLogBase):
 class UpdateLogOut(UpdateLogBase):
     id: int
     updated_at: datetime
+    title: Optional[str] = None
+    status: str = 'published'
+    source: str = 'manual'
 
     class Config:
         from_attributes = True
