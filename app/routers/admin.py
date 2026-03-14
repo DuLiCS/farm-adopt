@@ -205,7 +205,10 @@ def create_update(
         target_id=target_id,
         description=description,
         log_type=log_type_enum,
-        image_urls=image_urls if image_urls else None
+        image_urls=image_urls if image_urls else None,
+        title=request.get("title"),
+        status=request.get("status", "published"),
+        source=request.get("source", "manual")
     )
     db.add(update)
     db.commit()
@@ -277,5 +280,55 @@ def update_target_cover(target_id: int, data: dict, db: Session = Depends(get_db
     if not target:
         raise HTTPException(status_code=404, detail="Target not found")
     target.cover_image = data.get("cover_image")
+    db.commit()
+    return {"ok": True}
+
+
+@router.get("/updates/drafts")
+def list_drafts(
+    current_user: User = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    """获取所有草稿列表"""
+    from sqlalchemy import text
+    results = db.execute(text(
+        "SELECT id, target_id, title, description, log_type, source, updated_at FROM update_logs WHERE status='draft' ORDER BY updated_at DESC"
+    )).fetchall()
+    return [dict(r._mapping) for r in results]
+
+
+@router.post("/updates/{update_id}/publish")
+def publish_update(
+    update_id: int,
+    current_user: User = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    """发布草稿"""
+    from sqlalchemy import text
+    db.execute(text("UPDATE update_logs SET status='published' WHERE id=:id"), {"id": update_id})
+    db.commit()
+    return {"ok": True}
+
+
+@router.put("/updates/{update_id}")
+def edit_update(
+    update_id: int,
+    request: dict,
+    current_user: User = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    """编辑日志（草稿或已发布）"""
+    from sqlalchemy import text
+    fields = []
+    params = {"id": update_id}
+    if "title" in request:
+        fields.append("title=:title")
+        params["title"] = request["title"]
+    if "description" in request:
+        fields.append("description=:description")
+        params["description"] = request["description"]
+    if not fields:
+        return {"ok": True}
+    db.execute(text(f"UPDATE update_logs SET {', '.join(fields)} WHERE id=:id"), params)
     db.commit()
     return {"ok": True}
