@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, orders, admin, plaza
 from app.routers.sensor import router as sensor_router
+from app.routers.logs import router as logs_router
 from app.database import engine, Base
 
 # 初始化数据库（仅用于开发，生产用 Alembic）
@@ -24,6 +25,7 @@ app.include_router(orders.router)
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(plaza.router, prefix="/plaza", tags=["plaza"])
 app.include_router(sensor_router)
+app.include_router(logs_router)
 
 @app.get("/", summary="Health Check")
 def root():
