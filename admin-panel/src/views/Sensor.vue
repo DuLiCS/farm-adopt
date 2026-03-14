@@ -42,7 +42,7 @@
  </tr>
  </thead>
  <tbody>
- <tr v-for="row in history" :key="row.recorded_at">
+ <tr v-for="row in pagedHistory" :key="row.recorded_at">
  <td>{{ formatTime(row.recorded_at) }}</td>
  <td>{{ row.temperature !== null ? row.temperature : "--" }}</td>
  <td>{{ row.humidity !== null ? row.humidity : "--" }}</td>
@@ -51,6 +51,11 @@
  </tbody>
  </table>
  <div v-else class="no-data">暂无数据</div>
+ <div class="pagination" v-if="totalPages > 1">
+ <button :disabled="page === 1" @click="page--">上一页</button>
+ <span>{{ page }} / {{ totalPages }}</span>
+ <button :disabled="page === totalPages" @click="page++">下一页</button>
+ </div>
  </div>
  </div>
  </div>
@@ -62,6 +67,13 @@ import { ref, onMounted, computed } from "vue"
 const latest = ref(null)
 const history = ref([])
 const hours = ref(24)
+const page = ref(1)
+const pageSize = 20
+const totalPages = computed(() => Math.ceil(history.value.length / pageSize))
+const pagedHistory = computed(() => {
+ const start = (page.value - 1) * pageSize
+ return history.value.slice(start, start + pageSize)
+})
 const API = "http://47.102.138.74"
 const DEVICE_ID = "esp32-farm-01"
 
@@ -91,6 +103,7 @@ async function loadHistory() {
 
 function switchHours(h) {
  hours.value = h
+ page.value = 1
  loadHistory()
 }
 
@@ -129,4 +142,8 @@ th { background: #f5f5f0; color: #666; padding: 10px 16px; text-align: left; fon
 td { padding: 10px 16px; border-bottom: 1px solid #f0f0f0; color: #333; }
 tr:hover td { background: #fafaf8; }
 .no-data { color: #ccc; text-align: center; padding: 40px; }
+.pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 20px; }
+.pagination button { border: 1px solid #ddd; background: white; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+.pagination span { font-size: 14px; color: #666; }
 </style>
