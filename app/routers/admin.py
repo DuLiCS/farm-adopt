@@ -267,11 +267,20 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload")
 async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_admin_user)):
-    ext = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
-    filename = uuid.uuid4().hex + ext
+    from PIL import Image
+    import io
+    data = await file.read()
+    filename = uuid.uuid4().hex + ".jpg"
     filepath = os.path.join(UPLOAD_DIR, filename)
-    with open(filepath, "wb") as f:
-        f.write(await file.read())
+    try:
+        img = Image.open(io.BytesIO(data)).convert("RGB")
+        if img.width > 1200:
+            ratio = 1200 / img.width
+            img = img.resize((1200, int(img.height * ratio)), Image.LANCZOS)
+        img.save(filepath, "JPEG", quality=82, optimize=True)
+    except Exception:
+        with open(filepath, "wb") as f:
+            f.write(data)
     return {"url": f"/static/images/{filename}"}
 
 @router.patch("/targets/{target_id}/cover")
