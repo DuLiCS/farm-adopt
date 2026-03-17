@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.auth import get_current_admin
+from app.routers.auth import get_admin_user
 import json, os
 
 router = APIRouter()
@@ -30,7 +30,7 @@ def get_settings():
     return load_settings()
 
 @router.put("/api/settings")
-def update_settings(data: dict, _=Depends(get_current_admin)):
+def update_settings(data: dict, _=Depends(get_admin_user)):
     settings = load_settings()
     for k in DEFAULT_SETTINGS:
         if k in data:
