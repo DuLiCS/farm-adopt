@@ -42,3 +42,26 @@ def list_photos():
         "dates": result,
         "total": sum(len(d["photos"]) for d in result)
     }
+
+
+import subprocess
+
+@router.post("/api/photos/capture")
+def trigger_capture():
+    """触发树莓派立即拍一张照片并同步到服务器"""
+    try:
+        # SSH 调树莓派执行拍照+同步脚本
+        result = subprocess.run(
+            ["ssh", "-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=no",
+             "duli@192.168.x.x",  # 替换为树莓派实际IP
+             "/home/duli/capture.sh && /home/duli/sync.sh"],
+            capture_output=True, text=True, timeout=30
+        )
+        if result.returncode == 0:
+            return {"success": True, "message": "拍照完成"}
+        else:
+            return {"success": False, "message": result.stderr or "拍照失败"}
+    except subprocess.TimeoutExpired:
+        return {"success": False, "message": "树莓派响应超时"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
