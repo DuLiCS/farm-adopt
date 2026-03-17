@@ -74,7 +74,7 @@ const pagedHistory = computed(() => {
  const start = (page.value - 1) * pageSize
  return history.value.slice(start, start + pageSize)
 })
-const API = "http://47.102.138.74"
+const API = "https://shannanji.com"
 const DEVICE_ID = "esp32-farm-01"
 
 const updateText = computed(() => {

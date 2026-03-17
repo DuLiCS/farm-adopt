@@ -36,7 +36,7 @@
 </template>
 
 <script>
-const SERVER_URL = "http://47.102.138.74"
+const SERVER_URL = "https://shannanji.com"
 export default {
   name: "Settings",
   data() {

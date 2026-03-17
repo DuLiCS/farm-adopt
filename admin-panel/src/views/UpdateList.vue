@@ -92,7 +92,7 @@ const drafts = ref([])
 const published = ref([])
 const loading = ref(false)
 const editItem = ref(null)
-const API = "http://47.102.138.74"
+const API = "https://shannanji.com"
 
 async function loadData() {
  loading.value = true
