@@ -36,7 +36,7 @@
 </template>
 
 <script>
-const SERVER_URL = "https://shannanji.com"
+import { API_BASE as SERVER_URL } from '../config.js'
 export default {
   name: "Settings",
   data() {

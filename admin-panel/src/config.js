@@ -1,4 +1,5 @@
 export const BASE_URL = ''
+export const API_BASE = 'https://shannanji.com'
 
 export const ADMIN_CONFIG = {
   username: 'admin',

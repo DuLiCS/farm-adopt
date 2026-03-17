@@ -112,6 +112,7 @@
 </template>
 
 <script setup>
+import { API_BASE } from '../config.js'
 import { ref, onMounted } from 'vue'
 import { api } from '../api'
 
@@ -157,7 +158,7 @@ const getImageUrl = (path) => {
   // 相对路径转为完整 URL
   if (path.startsWith('http')) return path
   if (path.startsWith('/static/')) return path
-  return `http://localhost:8000${path}`
+  return API_BASE + path
 }
 
 const statusLabel = (s) => ({

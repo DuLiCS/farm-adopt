@@ -74,7 +74,7 @@ const pagedHistory = computed(() => {
  const start = (page.value - 1) * pageSize
  return history.value.slice(start, start + pageSize)
 })
-const API = "https://shannanji.com"
+import { API_BASE as API } from '../config.js'
 const DEVICE_ID = "esp32-farm-01"
 
 const updateText = computed(() => {

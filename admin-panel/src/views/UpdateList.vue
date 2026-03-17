@@ -92,7 +92,7 @@ const drafts = ref([])
 const published = ref([])
 const loading = ref(false)
 const editItem = ref(null)
-const API = "https://shannanji.com"
+import { API_BASE as API } from '../config.js'
 
 async function loadData() {
  loading.value = true
