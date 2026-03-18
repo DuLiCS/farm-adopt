@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, orders, admin, plaza, photos, settings
+from app.routers.plans import router as plans_router
 from app.routers.sensor import router as sensor_router
 from app.routers.logs import router as logs_router
 from app.database import engine, Base
@@ -28,6 +29,7 @@ app.include_router(sensor_router)
 app.include_router(logs_router)
 app.include_router(photos.router)
 app.include_router(settings.router)
+app.include_router(plans_router)
 
 @app.get("/", summary="Health Check")
 def root():
