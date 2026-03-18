@@ -8,6 +8,7 @@ import UpdateForm from '../views/UpdateForm.vue'
 import UpdateList from '../views/UpdateList.vue'
 import Sensor from '../views/Sensor.vue'
 import Settings from '../views/Settings.vue'
+import Plans from '../views/Plans.vue'
 
 const router = createRouter({
   history: createWebHistory('/admin-panel/'),
@@ -24,7 +25,8 @@ const router = createRouter({
         { path: 'updates', component: UpdateForm },
         { path: 'update-list', component: UpdateList },
         { path: 'sensor', component: Sensor },
-        { path: 'settings', component: Settings }
+        { path: 'settings', component: Settings },
+        { path: 'plans', component: Plans }
       ]
     }
   ]

@@ -10,6 +10,7 @@
         <router-link to="/update-list">更新列表</router-link>
         <router-link to="/sensor">传感器</router-link>
         <router-link to="/settings">网站设置</router-link>
+        <router-link to="/plans">套餐管理</router-link>
       </nav>
       <button class="btn-logout" @click="logout">退出</button>
     </header>
