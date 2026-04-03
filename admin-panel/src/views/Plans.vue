@@ -103,18 +103,34 @@
         </div>
       </div>
     </div>
+    <!-- 确认弹窗 -->
+    <ConfirmModal
+      :show="confirmState.show"
+      :title="confirmState.title"
+      :message="confirmState.message"
+      confirmText="删除"
+      :danger="true"
+      @confirm="confirmState.resolve(true); confirmState.show = false"
+      @cancel="confirmState.resolve(false); confirmState.show = false"
+    />
+    <AppToast :show="toast.show" :message="toast.message" :type="toast.type" />
   </div>
 </template>
 
 <script>
 import { API_BASE } from '../config.js'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import AppToast from '../components/AppToast.vue'
 
 export default {
+  components: { ConfirmModal, AppToast },
   data() {
     return {
       plans: [],
       showModal: false,
       editingId: null,
+      confirmState: { show: false, title: '', message: '', resolve: null },
+      toast: { show: false, message: '', type: 'success' },
       form: {
         plan_key: '',
         name: '',
@@ -197,6 +213,7 @@ export default {
       })
       this.closeModal()
       this.fetchPlans()
+      this.showToast(this.editingId ? '保存成功' : '套餐已创建')
     },
     async toggleActive(plan) {
       await fetch(`${API_BASE}/api/plans/${plan.id}`, {
@@ -207,12 +224,25 @@ export default {
       this.fetchPlans()
     },
     async deletePlan(plan) {
-      if (!confirm(`确认删除「${plan.name}」？`)) return
+      const confirmed = await new Promise(resolve => {
+        this.confirmState = {
+          show: true,
+          title: `删除「${plan.name}」？`,
+          message: '删除后无法恢复，已售订单不受影响',
+          resolve
+        }
+      })
+      if (!confirmed) return
       await fetch(`${API_BASE}/api/plans/${plan.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${this.token()}` }
       })
+      this.showToast('已删除')
       this.fetchPlans()
+    },
+    showToast(message, type = 'success') {
+      this.toast = { show: true, message, type }
+      setTimeout(() => { this.toast.show = false }, 2500)
     },
     async saveSort(plan) {
       await fetch(`${API_BASE}/api/plans/${plan.id}`, {

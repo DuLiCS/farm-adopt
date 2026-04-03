@@ -32,19 +32,23 @@
         {{ saving ? "保存中..." : "保存文案" }}
       </button>
     </div>
+  <AppToast :show="toast.show" :message="toast.message" :type="toast.type" />
   </div>
 </template>
 
 <script>
 import { API_BASE as SERVER_URL } from '../config.js'
+import AppToast from '../components/AppToast.vue'
 export default {
   name: "Settings",
+  components: { AppToast },
   data() {
     return {
       serverUrl: SERVER_URL,
       settings: { banner_image: "", banner_title: "", banner_sub: "" },
       uploading: false,
-      saving: false
+      saving: false,
+      toast: { show: false, message: '', type: 'success' }
     }
   },
   async mounted() {
@@ -52,6 +56,10 @@ export default {
     this.settings = await res.json()
   },
   methods: {
+    showToast(message, type = 'success') {
+      this.toast = { show: true, message, type }
+      setTimeout(() => { this.toast.show = false }, 2500)
+    },
     async onFileChange(e) {
       const file = e.target.files[0]
       if (!file) return
@@ -69,12 +77,12 @@ export default {
         if (data.url) {
           this.settings.banner_image = data.url
           await this._save()
-          alert("上传成功")
+          this.showToast('Banner 已更新')
         } else {
-          alert("上传失败：" + (data.detail || "未知错误"))
+          this.showToast('上传失败：' + (data.detail || '未知错误'), 'error')
         }
       } catch (e) {
-        alert("上传失败：" + e.message)
+        this.showToast('上传失败：' + e.message, 'error')
       } finally {
         this.uploading = false
         this.$refs.fileInput.value = ""
@@ -90,14 +98,14 @@ export default {
     },
     async saveSettings() {
       this.saving = true
-      try { await this._save(); alert("保存成功") }
-      catch (e) { alert("保存失败：" + e.message) }
+      try { await this._save(); this.showToast('保存成功') }
+      catch (e) { this.showToast('保存失败：' + e.message, 'error') }
       finally { this.saving = false }
     },
     async clearBanner() {
       this.settings.banner_image = ""
       await this._save()
-      alert("已移除")
+      this.showToast('Banner 已移除')
     }
   }
 }

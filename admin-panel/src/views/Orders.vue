@@ -3,8 +3,19 @@
     <h2>订单管理</h2>
     <button class="btn-add" @click="openCreate">手动创建</button>
 
+    <div class="filter-bar">
+      <input v-model="searchQuery" placeholder="搜索手机号 / 对象编号" class="filter-search" />
+      <select v-model="filterStatus" class="filter-select">
+        <option value="">全部状态</option>
+        <option value="active">进行中</option>
+        <option value="expired">已过期</option>
+        <option value="cancelled">已取消</option>
+      </select>
+      <span class="filter-count">共 {{ filteredOrders.length }} 条</span>
+    </div>
+
     <div v-if="loading" class="loading">加载中...</div>
-    <div v-else-if="orders.length === 0" class="empty">暂无订单</div>
+    <div v-else-if="filteredOrders.length === 0" class="empty">{{ orders.length === 0 ? '暂无订单' : '没有匹配的订单' }}</div>
     <div v-else class="table-container">
       <table class="table">
         <thead>
@@ -20,7 +31,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="o in orders" :key="o.id">
+          <tr v-for="o in filteredOrders" :key="o.id">
             <td>{{ o.user?.phone || o.user_id }}</td>
             <td>{{ o.target?.code || o.target_id }}</td>
             <td>{{ planLabel(o.plan_type) }}</td>
@@ -108,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { api } from '../api'
 import { API_BASE } from '../config.js'
 
@@ -122,6 +133,21 @@ const editOrder = ref(null)
 const form = ref({ user_phone: '', target_id: '', plan_key: '', price: 0, expire_date: '' })
 const editForm = ref({ status: '', expire_date: '' })
 const error = ref('')
+const searchQuery = ref('')
+const filterStatus = ref('')
+
+const filteredOrders = computed(() => {
+  return orders.value.filter(o => {
+    const q = searchQuery.value.trim().toLowerCase()
+    if (q) {
+      const phone = (o.user?.phone || String(o.user_id)).toLowerCase()
+      const code = (o.target?.code || String(o.target_id)).toLowerCase()
+      if (!phone.includes(q) && !code.includes(q)) return false
+    }
+    if (filterStatus.value && o.status !== filterStatus.value) return false
+    return true
+  })
+})
 
 onMounted(() => { loadData() })
 
@@ -248,6 +274,10 @@ h2 { margin: 0 0 16px; font-size: 18px; }
   font-size: 14px;
   margin-bottom: 16px;
 }
+.filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-search { flex: 1; min-width: 160px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.filter-select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white; }
+.filter-count { font-size: 13px; color: #999; white-space: nowrap; }
 .loading, .empty { text-align: center; padding: 40px; color: #999; }
 .table { width: 100%; border-collapse: collapse; }
 .table th, .table td { padding: 10px 14px; text-align: left; font-size: 14px; border-bottom: 1px solid #f0f0f0; }

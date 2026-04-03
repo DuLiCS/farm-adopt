@@ -54,15 +54,18 @@
       </button>
     </div>
   </div>
+  <AppToast :show="toast.show" :message="toast.message" :type="toast.type" />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { api } from '../api'
+import AppToast from '../components/AppToast.vue'
 
 const targets = ref([])
 const submitting = ref(false)
 const uploading = ref(false)
+const toast = ref({ show: false, message: '', type: 'success' })
 const currentUrl = ref('')
 const fileInput = ref(null)
 const form = ref({
@@ -79,6 +82,11 @@ const logTypeOptions = [
   { label: '配送通知', value: 'delivery' }
 ]
 
+const showToast = (message, type = 'success') => {
+  toast.value = { show: true, message, type }
+  setTimeout(() => { toast.value.show = false }, 2500)
+}
+
 onMounted(() => {
   api.getTargets().then(data => targets.value = data).catch(console.error)
 })
@@ -92,7 +100,7 @@ const addUrl = () => {
     form.value.image_urls.push(url)
     currentUrl.value = ''
   } catch {
-    alert('请输入有效的 URL')
+    showToast('请输入有效的 URL', 'error')
   }
 }
 
@@ -116,7 +124,7 @@ const handleFileUpload = async (event) => {
       }
     }
   } catch (e) {
-    alert(e.detail || '上传失败')
+    showToast(e.detail || '上传失败', 'error')
   } finally {
     uploading.value = false
     event.target.value = ''
@@ -124,7 +132,7 @@ const handleFileUpload = async (event) => {
 }
 
 const handleSubmit = async () => {
-  if (!form.value.target_id) { alert('请选择认养对象'); return }
+  if (!form.value.target_id) { showToast('请选择认养对象', 'error'); return }
   if (!form.value.description.trim()) { alert('请填写描述'); return }
   if (!form.value.log_type) { alert('请选择更新类型'); return }
 
@@ -136,11 +144,11 @@ const handleSubmit = async () => {
       description: form.value.description.trim(),
       image_urls: form.value.image_urls || []
     })
-    alert('发布成功')
+    showToast('发布成功！')
     form.value = { target_id: '', log_type: 'daily', description: '', image_urls: [] }
     currentUrl.value = ''
   } catch (e) {
-    alert(e.detail || '发布失败')
+    showToast(e.detail || '发布失败', 'error')
   } finally {
     submitting.value = false
   }

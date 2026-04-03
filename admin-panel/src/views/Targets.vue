@@ -3,8 +3,26 @@
     <h2>山南对象管理</h2>
     <button class="btn-add" @click="openCreateModal">新增</button>
 
+    <div class="filter-bar">
+      <input v-model="searchQuery" placeholder="搜索编号 / 名称" class="filter-search" />
+      <select v-model="filterType" class="filter-select">
+        <option value="">全部类型</option>
+        <option value="tea">茶树</option>
+        <option value="hydroponic">无土栽培/植物</option>
+        <option value="plant">植物</option>
+      </select>
+      <select v-model="filterStatus" class="filter-select">
+        <option value="">全部状态</option>
+        <option value="active">可认养</option>
+        <option value="maintenance">维护中</option>
+        <option value="harvested">已收获</option>
+        <option value="unavailable">不可用</option>
+      </select>
+      <span class="filter-count">共 {{ filteredTargets.length }} 条</span>
+    </div>
+
     <div v-if="loading" class="loading">加载中...</div>
-    <div v-else-if="targets.length === 0" class="empty">暂无山南对象</div>
+    <div v-else-if="filteredTargets.length === 0" class="empty">{{ targets.length === 0 ? '暂无山南对象' : '没有匹配的对象' }}</div>
     <div v-else class="table-container">
       <table class="table">
         <thead>
@@ -19,7 +37,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="t in targets" :key="t.id">
+          <tr v-for="t in filteredTargets" :key="t.id">
             <td>
               <img v-if="t.cover_image" :src="getImageUrl(t.cover_image)" class="cover-thumb" />
               <span v-else class="no-cover">无</span>
@@ -113,7 +131,7 @@
 
 <script setup>
 import { API_BASE } from '../config.js'
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { api } from '../api'
 
 const targets = ref([])
@@ -123,6 +141,23 @@ const isEditing = ref(false)
 const uploading = ref(false)
 const error = ref('')
 const fileInput = ref(null)
+const searchQuery = ref('')
+const filterType = ref('')
+const filterStatus = ref('')
+
+const filteredTargets = computed(() => {
+  return targets.value.filter(t => {
+    const q = searchQuery.value.trim().toLowerCase()
+    if (q) {
+      const code = (t.code || '').toLowerCase()
+      const name = (t.name || '').toLowerCase()
+      if (!code.includes(q) && !name.includes(q)) return false
+    }
+    if (filterType.value && t.type !== filterType.value) return false
+    if (filterStatus.value && t.current_status !== filterStatus.value) return false
+    return true
+  })
+})
 
 const defaultForm = {
   code: '',
@@ -280,6 +315,10 @@ h2 {
   margin: 0 0 16px;
   font-size: 18px;
 }
+.filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-search { flex: 1; min-width: 140px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.filter-select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white; }
+.filter-count { font-size: 13px; color: #999; white-space: nowrap; }
 .btn-add {
   background: #2d5a27;
   color: white;
@@ -308,21 +347,19 @@ h2 {
   width: 100%;
   border-collapse: collapse;
 }
-.th, .td {
-  padding: 12px 16px;
+.table th, .table td {
+  padding: 10px 14px;
   text-align: left;
   font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
 }
-.th {
+.table th {
   background: #f5f5f5;
   font-weight: 600;
   color: #666;
   border-bottom: 1px solid #eee;
 }
-.td {
-  border-bottom: 1px solid #f0f0f0;
-}
-.tr:last-child .td {
+.table tr:last-child td {
   border-bottom: none;
 }
 .cover-thumb {
