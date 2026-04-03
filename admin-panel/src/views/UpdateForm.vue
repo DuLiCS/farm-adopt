@@ -29,14 +29,21 @@
       </div>
 
       <div class="form-group">
-        <label>图片URLs</label>
-        <div class="url-input-row">
-          <input v-model="currentUrl" placeholder="输入图片URL，回车添加" @keyup.enter="addUrl" />
-          <button @click="addUrl">添加</button>
+        <label>图片</label>
+        <div class="img-upload-row">
+          <input type="file" ref="fileInput" accept="image/*" multiple @change="handleFileUpload" style="display:none" />
+          <button type="button" class="btn-upload" @click="$refs.fileInput.click()" :disabled="uploading">
+            {{ uploading ? '上传中...' : '📷 上传图片' }}
+          </button>
+          <span class="upload-or">或</span>
+          <div class="url-input-row">
+            <input v-model="currentUrl" placeholder="粘贴图片URL，回车添加" @keyup.enter="addUrl" />
+            <button type="button" @click="addUrl">添加</button>
+          </div>
         </div>
-        <div v-if="form.image_urls?.length" class="url-list">
-          <div v-for="(url, idx) in form.image_urls" :key="idx" class="url-tag">
-            {{ url }}
+        <div v-if="form.image_urls?.length" class="img-preview-list">
+          <div v-for="(url, idx) in form.image_urls" :key="idx" class="img-preview-item">
+            <img :src="url" class="img-thumb" />
             <span class="remove" @click="removeUrl(idx)">×</span>
           </div>
         </div>
@@ -55,7 +62,9 @@ import { api } from '../api'
 
 const targets = ref([])
 const submitting = ref(false)
+const uploading = ref(false)
 const currentUrl = ref('')
+const fileInput = ref(null)
 const form = ref({
   target_id: '',
   log_type: 'daily',
@@ -89,6 +98,29 @@ const addUrl = () => {
 
 const removeUrl = (idx) => {
   form.value.image_urls.splice(idx, 1)
+}
+
+const handleFileUpload = async (event) => {
+  const files = Array.from(event.target.files)
+  if (!files.length) return
+  uploading.value = true
+  try {
+    for (const file of files) {
+      const result = await api.uploadImage(file)
+      if (result.url) {
+        if (!form.value.image_urls) form.value.image_urls = []
+        // uploadImage returns relative path like /static/images/xxx.jpg
+        // convert to absolute if needed
+        const url = result.url.startsWith('http') ? result.url : window.location.origin + result.url
+        form.value.image_urls.push(url)
+      }
+    }
+  } catch (e) {
+    alert(e.detail || '上传失败')
+  } finally {
+    uploading.value = false
+    event.target.value = ''
+  }
 }
 
 const handleSubmit = async () => {
@@ -159,22 +191,22 @@ h2 { margin: 0 0 16px; font-size: 18px; }
   border-radius: 6px;
   cursor: pointer;
 }
-.url-list { margin-top: 8px; }
-.url-tag {
-  display: inline-flex;
-  align-items: center;
-  background: #f0f0f0;
-  border-radius: 4px;
-  padding: 6px 12px;
-  margin: 4px;
-  font-size: 12px;
-  word-break: break-all;
+.img-upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.btn-upload {
+  background: #f0f0f0; color: #333; border: 1px solid #ddd;
+  padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap;
 }
-.url-tag .remove {
-  margin-left: 8px;
-  color: #c0392b;
-  cursor: pointer;
-  font-weight: bold;
+.btn-upload:hover { background: #e0e0e0; }
+.btn-upload:disabled { opacity: 0.6; cursor: not-allowed; }
+.upload-or { font-size: 13px; color: #bbb; flex-shrink: 0; }
+.img-preview-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.img-preview-item { position: relative; }
+.img-thumb { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; display: block; }
+.img-preview-item .remove {
+  position: absolute; top: -6px; right: -6px;
+  background: #c0392b; color: white; border-radius: 50%;
+  width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer; line-height: 1;
 }
 
 .btn-submit {

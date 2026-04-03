@@ -293,6 +293,50 @@ def update_target_cover(target_id: int, data: dict, db: Session = Depends(get_db
     return {"ok": True}
 
 
+@router.put("/targets/{target_id}")
+def update_target(target_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+    """更新认养对象基本信息"""
+    target = db.query(AdoptTarget).filter(AdoptTarget.id == target_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Target not found")
+    if "name" in data:
+        target.name = data["name"]
+    if "description" in data:
+        target.description = data["description"]
+    if "location_desc" in data:
+        target.location_desc = data["location_desc"]
+    if "current_status" in data:
+        try:
+            target.current_status = TargetStatus(data["current_status"])
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid status")
+    if "cover_image" in data:
+        target.cover_image = data["cover_image"]
+    db.commit()
+    db.refresh(target)
+    return target
+
+
+@router.patch("/orders/{order_id}")
+def update_order(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+    """更新订单状态或到期日"""
+    order = db.query(AdoptOrder).filter(AdoptOrder.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if "status" in data:
+        try:
+            order.status = OrderStatus(data["status"])
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid status")
+    if "expire_date" in data:
+        try:
+            order.expire_date = date.fromisoformat(data["expire_date"])
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format")
+    db.commit()
+    return {"ok": True}
+
+
 @router.get("/updates/drafts")
 def list_drafts(
     current_user: User = Depends(get_admin_user),

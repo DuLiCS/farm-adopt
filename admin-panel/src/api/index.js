@@ -66,5 +66,17 @@ export const api = {
     request(`/admin/targets/${targetId}/cover`, {
       method: 'PATCH',
       body: JSON.stringify({ cover_image: coverUrl })
+    }),
+
+  updateTarget: (targetId, data) =>
+    request(`/admin/targets/${targetId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+
+  updateOrder: (orderId, data) =>
+    request(`/admin/orders/${orderId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
     })
 }

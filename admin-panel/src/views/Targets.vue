@@ -25,7 +25,7 @@
               <span v-else class="no-cover">无</span>
             </td>
             <td>{{ t.code }}</td>
-            <td>{{ t.type === 'tea' ? '茶树' : '无土栽培' }}</td>
+            <td>{{ typeLabel(t.type) }}</td>
             <td>{{ t.name }}</td>
             <td>{{ t.location_desc || '-' }}</td>
             <td :style="{ color: statusColor(t.current_status) }">{{ statusLabel(t.current_status) }}</td>
@@ -51,7 +51,7 @@
           <label>类型 *</label>
           <select v-model="form.type" :disabled="isEditing">
             <option value="tea">茶树</option>
-            <option value="hydroponic">无土栽培</option>
+            <option value="hydroponic">无土栽培/植物</option>
           </select>
         </div>
 
@@ -241,14 +241,15 @@ const handleSubmit = async () => {
   loading.value = true
   try {
     if (isEditing.value) {
-      // 编辑模式：更新封面图（如果有变更）
       const targetId = form.value.targetId
-      if (form.value.cover_image) {
-        await api.updateTargetCover(targetId, form.value.cover_image)
-      }
-      // TODO: 更新其他字段（目前只实现了封面图更新）
+      await api.updateTarget(targetId, {
+        name: form.value.name,
+        description: form.value.description,
+        location_desc: form.value.location_desc,
+        current_status: form.value.current_status,
+        cover_image: form.value.cover_image || undefined
+      })
     } else {
-      // 新增模式
       await api.createTarget({
         ...form.value,
         price_basic: form.value.price_basic || null,
@@ -264,6 +265,8 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
+
+const typeLabel = (t) => ({ tea: '茶树', hydroponic: '无土栽培/植物', plant: '植物', herb: '植物' }[t] || t)
 </script>
 
 <style scoped>
