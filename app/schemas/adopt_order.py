@@ -27,6 +27,7 @@ class AdoptOrderCreate(AdoptOrderBase):
     receiver_phone: Optional[str] = None
     receiver_address: Optional[str] = None
     receiver_note: Optional[str] = None
+    dedication: Optional[str] = None
 
 class AdoptOrderOut(BaseModel):
     id: int
@@ -38,6 +39,7 @@ class AdoptOrderOut(BaseModel):
     price: float
     status: OrderStatus
     created_at: datetime
+    dedication: Optional[str] = None
 
     class Config:
         from_attributes = True

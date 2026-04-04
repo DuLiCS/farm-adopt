@@ -36,6 +36,9 @@ class AdoptOrder(Base):
     receiver_address = Column(String(200), nullable=True)
     receiver_note = Column(String(100), nullable=True)
 
+    # 认养寄语
+    dedication = Column(String(100), nullable=True)
+
     user = relationship("User", back_populates="orders")
     target = relationship("AdoptTarget", back_populates="orders")
     deliveries = relationship("DeliveryLog", back_populates="order", cascade="all, delete-orphan")

@@ -98,7 +98,8 @@ def create_order(
         receiver_name=getattr(order_data, 'receiver_name', None),
         receiver_phone=getattr(order_data, 'receiver_phone', None),
         receiver_address=getattr(order_data, 'receiver_address', None),
-        receiver_note=getattr(order_data, 'receiver_note', None)
+        receiver_note=getattr(order_data, 'receiver_note', None),
+        dedication=getattr(order_data, 'dedication', None)
     )
     db.add(order)
     # 更新认养对象状态为不可用
@@ -123,6 +124,7 @@ def get_my_orders(current_user: User = Depends(get_current_user), db: Session = 
             "start_date": str(order.start_date) if order.start_date else None,
             "expire_date": str(order.expire_date) if order.expire_date else None,
             "price": order.price,
+            "dedication": order.dedication,
             "target": {
                 "id": target.id,
                 "name": target.name,
