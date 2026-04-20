@@ -26,13 +26,6 @@ def list_targets(
 ):
     """获取所有认养对象（公开）"""
     targets = db.query(AdoptTarget).offset(skip).limit(limit).all()
-    # 调试：打印第一个 target 的属性
-    if targets:
-        t = targets[0]
-        print(f"DEBUG: id={t.id}, name={t.name}, price_basic={t.price_basic}")
-        from app.schemas.adopt_target import AdoptTargetOut
-        schema = AdoptTargetOut.model_validate(t)
-        print("Schema dict:", schema.model_dump())
     return targets
 
 @router.get("/targets/{target_id}")

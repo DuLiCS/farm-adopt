@@ -87,9 +87,11 @@ def update_sort(items: List[SortItem], db: Session = Depends(get_db), current_us
     return {"ok": True}
 
 
+_PLAN_UPDATABLE_FIELDS = {"name", "category", "price", "description", "details", "benefits", "sort_order", "stock", "is_active"}
+
 @router.put("/{plan_id}")
 def update_plan(plan_id: int, plan: PlanUpdate, db: Session = Depends(get_db), current_user=Depends(get_admin_user)):
-    data = {k: v for k, v in plan.dict().items() if v is not None}
+    data = {k: v for k, v in plan.dict().items() if v is not None and k in _PLAN_UPDATABLE_FIELDS}
     if not data:
         raise HTTPException(status_code=400, detail="没有可更新的字段")
     if "benefits" in data:

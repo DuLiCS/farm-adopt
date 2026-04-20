@@ -10,5 +10,12 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
     ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "farm2026")
+    # 逗号分隔的允许跨域来源列表，例如: http://150.158.24.148,https://example.com
+    ALLOWED_ORIGINS: list[str] = [
+        o.strip() for o in os.getenv(
+            "ALLOWED_ORIGINS",
+            "http://150.158.24.148,http://localhost:5173,http://localhost:3000"
+        ).split(",") if o.strip()
+    ]
 
 settings = Settings()

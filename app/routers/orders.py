@@ -24,7 +24,6 @@ def get_db():
         db.close()
 
 def get_current_user(authorization: str = Header(None), db: Session = Depends(get_db)):
-    print(f"DEBUG: get_current_user called, auth header: {authorization[:20] if authorization else None}...")  # 调试
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid auth header")
     token = authorization.split(" ")[1]
@@ -33,8 +32,7 @@ def get_current_user(authorization: str = Header(None), db: Session = Depends(ge
         phone = payload.get("sub")
         if phone is None:
             raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        print(f"DEBUG: Token decode error: {e}")  # 调试日志
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
     user = db.query(User).filter(User.phone == phone).first()
     if not user:

@@ -1,23 +1,25 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, orders, admin, plaza, photos, settings
+from app.routers import auth, orders, admin, plaza, photos
+from app.routers import settings as settings_router
 from app.routers.plans import router as plans_router
 from app.routers.sensor import router as sensor_router
 from app.routers.logs import router as logs_router
 from app.database import engine, Base
+from app.core.config import settings
 
 # 初始化数据库（仅用于开发，生产用 Alembic）
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Shannan Ji API", version="1.0.0")
 
-# 允许跨域（根据需求调整）
+# 允许跨域；备案完成后在 ALLOWED_ORIGINS 环境变量中替换 IP 为域名
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # 挂载路由
@@ -28,7 +30,7 @@ app.include_router(plaza.router, prefix="/plaza", tags=["plaza"])
 app.include_router(sensor_router)
 app.include_router(logs_router)
 app.include_router(photos.router)
-app.include_router(settings.router)
+app.include_router(settings_router.router)
 app.include_router(plans_router)
 
 @app.get("/", summary="Health Check")
