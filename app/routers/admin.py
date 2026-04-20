@@ -265,22 +265,28 @@ from fastapi import UploadFile, File
 UPLOAD_DIR = "/opt/farm-adopt/static/images"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+_MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+_ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+
 @router.post("/upload")
 async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_admin_user)):
-    from PIL import Image
+    from PIL import Image, UnidentifiedImageError
     import io
+    if file.content_type and file.content_type not in _ALLOWED_MIME:
+        raise HTTPException(status_code=400, detail="不支持的文件类型")
     data = await file.read()
-    filename = uuid.uuid4().hex + ".jpg"
-    filepath = os.path.join(UPLOAD_DIR, filename)
+    if len(data) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="文件不能超过 10 MB")
     try:
         img = Image.open(io.BytesIO(data)).convert("RGB")
-        if img.width > 1200:
-            ratio = 1200 / img.width
-            img = img.resize((1200, int(img.height * ratio)), Image.LANCZOS)
-        img.save(filepath, "JPEG", quality=82, optimize=True)
-    except Exception:
-        with open(filepath, "wb") as f:
-            f.write(data)
+    except UnidentifiedImageError:
+        raise HTTPException(status_code=400, detail="无法识别的图片格式")
+    if img.width > 1200:
+        ratio = 1200 / img.width
+        img = img.resize((1200, int(img.height * ratio)), Image.LANCZOS)
+    filename = uuid.uuid4().hex + ".jpg"
+    filepath = os.path.join(UPLOAD_DIR, filename)
+    img.save(filepath, "JPEG", quality=82, optimize=True)
     return {"url": f"/static/images/{filename}"}
 
 @router.patch("/targets/{target_id}/cover")

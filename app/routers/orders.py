@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Header
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
 from datetime import timedelta, date
 
@@ -109,10 +109,15 @@ def create_order(
 
 @router.get("/me")
 def get_my_orders(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    orders = db.query(AdoptOrder).filter(AdoptOrder.user_id == current_user.id).all()
+    orders = (
+        db.query(AdoptOrder)
+        .filter(AdoptOrder.user_id == current_user.id)
+        .options(joinedload(AdoptOrder.target))
+        .all()
+    )
     result = []
     for order in orders:
-        target = db.query(AdoptTarget).filter(AdoptTarget.id == order.target_id).first()
+        target = order.target
         order_dict = {
             "id": order.id,
             "user_id": order.user_id,
