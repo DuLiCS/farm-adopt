@@ -1,5 +1,5 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
@@ -9,6 +9,7 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserOut, Token
 from app.core.security import verify_password, get_password_hash, create_access_token, decode_token
 from app.core.config import settings
+from app.core.limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -43,7 +44,8 @@ def get_admin_user(current_user: User = Depends(get_current_user)):
     return current_user
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(user_in: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def register(request: Request, user_in: UserCreate, db: Session = Depends(get_db)):
     # 检查手机号是否已注册
     existing = db.query(User).filter(User.phone == user_in.phone).first()
     if existing:
@@ -59,7 +61,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     return user
 
 @router.post("/login", response_model=Token)
-def login(form: OAuth2PasswordRequestForm = Depends()):
+@limiter.limit("10/minute")
+def login(request: Request, form: OAuth2PasswordRequestForm = Depends()):
     # 注意：OAuth2PasswordRequestForm 的 username 字段用作 phone
     db = SessionLocal()
     try:
